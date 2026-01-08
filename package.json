@@ -1,0 +1,12 @@
+{
+  "name": "lecture-converter",
+  "version": "1.0.0",
+  "description": "Konvertiert Audio-Vorlesungen in strukturierte Mitschriften",
+  "main": "lecture-converter.js",
+  "scripts": {
+    "start": "node lecture-converter.js"
+  },
+  "keywords": ["audio", "transcription", "ai"],
+  "author": "deleter81",
+  "license": "MIT"
+}
