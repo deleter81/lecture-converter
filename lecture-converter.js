@@ -65,24 +65,27 @@ async function convertToWav(inputPath) {
 
 // транскрибация через Whisper
 async function transcribeAudio(audioPath) {
-    console.log('Transkribiere Audio mit Whisper...');
-    const outputPath = path.join(CONFIG.tempDir, 'transcript.txt');
-
-    try {
-        await execCommand('whisper', [
-            audioPath,
-            '--model', CONFIG.whisperModel,
-            '--language', 'de',
-            '--output-dir', CONFIG.tempDir,
-            '--output-txt'
-        ]);
-
-        const transcript = await fs.readFile(outputPath, 'utf-8');
-        console.log('Transkription abgeschlossen');
-        return transcript;
-    } catch (error) {
-        throw new Error(`Transkriptionsfehler: ${error.message}`);
-    }
+  console.log('🎤 Transkribiere Audio mit Whisper...');
+  
+  try {
+    const modelPath = path.join(process.env.HOME, 'whisper.cpp/models/ggml-base.bin');
+    const outputBase = path.join(CONFIG.tempDir, 'audio');
+    
+    await execCommand('whisper', [
+      '-m', modelPath,
+      '-l', 'de',
+      '-f', audioPath,
+      '-otxt',
+      '-of', outputBase
+    ]);
+    
+    const outputPath = `${outputBase}.txt`;
+    const transcript = await fs.readFile(outputPath, 'utf-8');
+    console.log('✅ Transkription abgeschlossen');
+    return transcript;
+  } catch (error) {
+    throw new Error(`Transkriptionsfehler: ${error.message}`);
+  }
 }
 
 
