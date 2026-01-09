@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fs = require('fs').promises;
 const path = require('path');
 const { spawn } = require('child_process');
@@ -141,4 +143,63 @@ async function saveResult(summary, originalName) {
 }
 
 
-// 
+//основная функция
+async function processLecture(audioPath) {
+    console.log('Starte Vorlesungsverarbeitung...\n');
+
+    try {
+        //создаем необходимые директории
+        await fs.mkdir(CONFIG.tempDir, { recursive: true});
+        await fs.mkdir(CONFIG.outputDir, { recursive: true });
+
+        //проверяем существование файла
+        await fs.access(audioPath);
+
+        //конвертация аудио
+        const wavPath = await convertToWav(audioPath);
+
+        //транскрибация
+        const transcript = await transcribeAudio(wavPath);
+
+        //генерация проекта
+        const summary = await generateSummary(transcript);
+
+        //сохранение
+        const outputPath = await saveResult(summary, path.basename(audioPath));
+
+        //очистка временных файлов
+        console.log('Räume temporäre Dateien auf...');
+        await fs.rm(CONFIG.tempDir, { recursive: true, force: true });
+
+        console.log('\n Fertig! Mitschrift erfolgreich erstellt.')
+        console.log(`Datei: ${outputPath}`);
+
+    } catch (error) {
+        console.error('Fehler:', error.message);
+        process.exit(1);
+    }
+}
+
+
+//CLI интерфейс
+if (require.main === module) {
+    const args = process.argv.slice(2);
+
+    if (args.length === 0) {
+        console.log(`📚 Audio-Vorlesungen zu Mitschrift Konverter
+
+Verwendung:
+  node lecture-converter.js <pfad_zur_audio_datei>
+
+Beispiele:
+  node lecture-converter.js ./vorlesung.mp3
+  node lecture-converter.js /pfad/zu/vorlesung.m4a
+
+Unterstützte Formate: mp3, m4a, wav, ogg, flac usw.`);
+        process.exit(0);
+    }
+
+    processLecture(args[0]);
+}
+
+module.exports = { processLecture };
