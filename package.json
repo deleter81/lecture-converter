@@ -4,9 +4,19 @@
   "description": "Konvertiert Audio-Vorlesungen in strukturierte Mitschriften",
   "main": "lecture-converter.js",
   "scripts": {
-    "start": "node lecture-converter.js"
+    "start": "node lecture-converter.js",
+    "web": "node server.js"
   },
-  "keywords": ["audio", "transcription", "ai"],
+  "keywords": [
+    "audio",
+    "transcription",
+    "ai"
+  ],
   "author": "deleter81",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "multer": "^2.0.2"
+  }
 }
