@@ -94,3 +94,33 @@ async function handleFile(file) {
 }
 
 // drag & drop
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    handleFile(file);
+});
+
+//click to upload
+uploadArea.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+    handleFile(e.target.files[0]);
+});
+
+//загрузка результатов при старте
+loadResults();
+
+//автообновление каждые 10 секунд
+setInterval(loadResults, 10000);
