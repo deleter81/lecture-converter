@@ -51,3 +51,46 @@ function showMessage(text, type = 'success') {
 }
 
 //обработка загрузки файла
+async function handleFile(file) {
+    if (!file) return;
+
+    //проверяем размер
+    if (file.size > 500 * 1024 * 1024) {
+        showMessage('Datei zu groß! Maximum 500mb.', error);
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('audio', file);
+
+    uploadArea.style.display = 'none';
+    processing.classList.add('active');
+
+    try {
+        const response = await fetch('/api/convert', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showMessage('✅ Verarbeitung gestartet! Die Mitschrift erscheint in wenigen Minuten unten.', 'success');
+
+            //обновляем список результатов каждые 5 секунд
+            const interval = setInterval(loadResults, 5000);
+
+            //останавливаем обновление через 2 минуты
+            setTimeout(() => clearInterval(interval), 120000);
+        } else {
+            showMessage('❌ Fehler: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showMessage('❌ Verbindungsfehler: ' + error.message, 'error');
+    } finally {
+        processing.classList.remove('active');
+        uploadArea.style.display = 'black';
+    }
+}
+
+// drag & drop
