@@ -42,3 +42,12 @@ async function loadResults() {
 }
 
 //показать сообщение
+function showMessage(text, type = 'success') {
+    statusMessage.textContent = text;
+    statusMessage.className = `status-message ${type}`;
+    setTimeout(() => {
+        statusMessage.className = 'status-message';
+    }, 5000);
+}
+
+//обработка загрузки файла
