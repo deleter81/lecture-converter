@@ -23,11 +23,11 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     fileFilter: (req, file, cb) => {
-        const allowedTypes = /mp3|wav|m4a|ogg|flac|webm/;
+        const allowedTypes = /mp3|wav|m4a|ogg|flac|webm|mpeg|audio/;
         const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = allowedTypes.test(file.mimetype);
 
-        if (extname && mimetype) {
+        // Принимаем файл если расширение правильное ИЛИ это аудио
+        if (extname || file.mimetype.startsWith('audio/')) {
             return cb(null, true);
         }
         cb(new Error('Неподдерживаемый формат файла'));

@@ -65,27 +65,28 @@ async function convertToWav(inputPath) {
 
 // транскрибация через Whisper
 async function transcribeAudio(audioPath) {
-  console.log('🎤 Transkribiere Audio mit Whisper...');
-  
-  try {
-    const modelPath = path.join(process.env.HOME, 'whisper.cpp/models/ggml-base.bin');
-    const outputBase = path.join(CONFIG.tempDir, 'audio');
-    
-    await execCommand('whisper', [
-      '-m', modelPath,
-      '-l', 'de',
-      '-f', audioPath,
-      '-otxt',
-      '-of', outputBase
-    ]);
-    
-    const outputPath = `${outputBase}.txt`;
-    const transcript = await fs.readFile(outputPath, 'utf-8');
-    console.log('✅ Transkription abgeschlossen');
-    return transcript;
-  } catch (error) {
-    throw new Error(`Transkriptionsfehler: ${error.message}`);
-  }
+    console.log('🎤 Transkribiere Audio mit Whisper...');
+
+    try {
+        const whisperPath = path.join(process.env.HOME, 'whisper.cpp/build/bin/whisper-cli');
+        const modelPath = path.join(process.env.HOME, 'whisper.cpp/models/ggml-base.bin');
+
+        await execCommand(whisperPath, [
+            audioPath,
+            '-m', modelPath,
+            '-l', 'de',
+            '--output-dir', CONFIG.tempDir,
+            '--output-txt'
+        ]);
+
+        // Whisper создаёт файл audio.wav.txt
+        const outputPath = path.join(CONFIG.tempDir, 'audio.txt');
+        const transcript = await fs.readFile(outputPath, 'utf-8');
+        console.log('✅ Transkription abgeschlossen');
+        return transcript;
+    } catch (error) {
+        throw new Error(`Ошибка транскрибации: ${error.message}`);
+    }
 }
 
 
@@ -152,7 +153,7 @@ async function processLecture(audioPath) {
 
     try {
         //создаем необходимые директории
-        await fs.mkdir(CONFIG.tempDir, { recursive: true});
+        await fs.mkdir(CONFIG.tempDir, { recursive: true });
         await fs.mkdir(CONFIG.outputDir, { recursive: true });
 
         //проверяем существование файла

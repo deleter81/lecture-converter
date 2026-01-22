@@ -4,23 +4,30 @@ const processing = document.getElementById('processing');
 const statusMessage = document.getElementById('statusMessage');
 const resultsList = document.getElementById('resultsList');
 
-//загрузка списка результатов
+// Загрузка списка результатов
 async function loadResults() {
     try {
         const response = await fetch('/api/results');
+
+        if (!response.ok) {
+            throw new Error('Fehler beim Laden');
+        }
+
         const results = await response.json();
 
-        if (results.lenght === 0) {
+        console.log('Результаты:', results); // Для отладки
+
+        if (!results || results.length === 0) {
             resultsList.innerHTML = `
                 <div class="empty-state">
-                    <div class="emptypstate-icon">📭</div>
+                    <div class="empty-state-icon">📭</div>
                     <p>Noch keine Mitschriften vorhanden</p>
                 </div>
             `;
             return;
         }
 
-        resultsList.innerHTML = response.map(result => {
+        resultsList.innerHTML = results.map(result => {
             const date = new Date(result.created).toLocaleString('de-DE');
             const size = (result.size / 1024).toFixed(1);
 
@@ -30,7 +37,7 @@ async function loadResults() {
                         <div class="result-name">${result.filename}</div>
                         <div class="result-meta">${date} • ${size} KB</div>
                     </div>
-                    <a href="${result.downloadurl}"class="download-btn" download>
+                    <a href="${result.downloadUrl}" class="download-btn" download>
                         ⬇️ Download
                     </a>
                 </div>
@@ -38,6 +45,12 @@ async function loadResults() {
         }).join('');
     } catch (error) {
         console.error('Fehler beim Laden der Ergebnisse:', error);
+        resultsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">❌</div>
+                <p>Fehler beim Laden: ${error.message}</p>
+            </div>
+        `;
     }
 }
 
