@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture Converter - Audio zu Mitschrift</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎓 Lecture Converter</h1>
+        <p class="subtitle">Konvertiere Audio-Vorlesungen automatisch in strukturierte Mitschriften</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">🎤</div>
+            <div class="upload-text">Datei hierher ziehen oder klicken zum Auswählen</div>
+            <div class="upload-hint">Unterstützte Formate: MP3, WAV, M4A, OGG, FLAC (max 500MB)</div>
+            <input type="file" id="fileInput" accept="audio/*">
+        </div>
+
+        <div class="processing" id="processing">
+            <div class="spinner"></div>
+            <p>Verarbeite Aufnahme...</p>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                Dies kann einige Minuten dauern
+            </p>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+
+        <div class="results">
+            <h2>📄 Fertige Mitschriften</h2>
+            <div id="resultsList"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
