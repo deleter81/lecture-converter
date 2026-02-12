@@ -32,16 +32,21 @@ async function loadResults() {
             const size = (result.size / 1024).toFixed(1);
 
             return `
-                <div class="result-item">
-                    <div class="result-info">
-                        <div class="result-name">${result.filename}</div>
-                        <div class="result-meta">${date} • ${size} KB</div>
-                    </div>
-                    <a href="${result.downloadUrl}" class="download-btn" download>
-                        ⬇️ Download
-                    </a>
-                </div>
-            `;
+        <div class="result-item" id="item-${result.filename}">
+            <div class="result-info">
+                <div class="result-name">${result.filename}</div>
+                <div class="result-meta">${date} • ${size} KB</div>
+            </div>
+            <div class="result-actions">
+                <a href="${result.downloadUrl}" class="download-btn" download>
+                    ⬇️ Download
+                </a>
+                <button class="delete-btn" onclick="deleteFile('${result.filename}')">
+                    🗑️ 
+                </button>
+            </div>
+        </div>
+    `;
         }).join('');
     } catch (error) {
         console.error('Fehler beim Laden der Ergebnisse:', error);
@@ -61,6 +66,32 @@ function showMessage(text, type = 'success') {
     setTimeout(() => {
         statusMessage.className = 'status-message';
     }, 5000);
+}
+
+
+// Удаление файла
+async function deleteFile(filename) {
+    if (!confirm(`Möchten Sie "${filename}" wirklich löschen?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/delete/${encodeURIComponent(filename)}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showMessage('🗑️ Datei erfolgreich gelöscht!', 'success');
+            // Обновляем список
+            loadResults();
+        } else {
+            showMessage('❌ Fehler: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showMessage('❌ Verbindungsfehler: ' + error.message, 'error');
+    }
 }
 
 //обработка загрузки файла

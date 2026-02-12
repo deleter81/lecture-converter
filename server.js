@@ -124,6 +124,24 @@ app.get('/api/download/:filename', async (req, res) => {
     }
 });
 
+
+// API: Удалить конспект
+app.delete('/api/delete/:filename', async (req, res) => {
+    try {
+        const filename = req.params.filename;
+        const filePath = path.join(__dirname, 'output', filename);
+
+        await fs.access(filePath);
+        await fs.unlink(filePath);
+
+        console.log(`🗑️ Удалён файл: ${filename}`);
+        res.json({ success: true, message: 'Datei gelöscht' });
+    } catch (error) {
+        console.error('Ошибка удаления:', error);
+        res.status(404).json({ error: 'Datei nicht gefunden' });
+    }
+});
+
 // Запуск сервера
 app.listen(PORT, () => {
     console.log(`
