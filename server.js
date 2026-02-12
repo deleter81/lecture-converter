@@ -51,7 +51,10 @@ app.post('/api/convert', upload.single('audio'), async (req, res) => {
             return res.status(400).json({ error: 'Файл не загружен' });
         }
 
+        const summaryLanguage = req.body.summaryLanguage || 'de';
+
         console.log(`📁 Получен файл: ${req.file.originalname}`);
+        console.log(`📝 Язык конспекта: ${summaryLanguage}`);
 
         res.json({
             message: 'Обработка началась',
@@ -61,7 +64,7 @@ app.post('/api/convert', upload.single('audio'), async (req, res) => {
 
         const audioPath = req.file.path;
 
-        processLecture(audioPath)
+        processLecture(audioPath, summaryLanguage)
             .then(() => {
                 console.log(`✅ Обработка завершена: ${req.file.originalname}`);
             })

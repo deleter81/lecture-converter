@@ -90,19 +90,15 @@ async function convertToWav(inputPath) {
     }
 }
 
-// Транскрибация через Whisper
+// Транскрибация через Whisper (автоопределение языка)
 async function transcribeAudio(audioPath) {
     console.log('🎤 Transkribiere Audio mit Whisper...');
-    console.log('📂 Входной файл:', audioPath);
+    console.log('🌍 Язык: автоопределение');
 
     try {
         const whisperPath = path.join(process.env.HOME, 'whisper.cpp/build/bin/whisper-cli');
         const modelPath = path.join(process.env.HOME, 'whisper.cpp/models/ggml-base.bin');
 
-        console.log('🔧 Whisper путь:', whisperPath);
-        console.log('🔧 Модель путь:', modelPath);
-
-        // Проверяем что файлы существуют
         await fs.access(whisperPath);
         await fs.access(modelPath);
         await fs.access(audioPath);
@@ -111,33 +107,25 @@ async function transcribeAudio(audioPath) {
 
         const outputFile = path.join(CONFIG.tempDir, 'transcript');
 
+        // Используем auto для автоопределения языка
         await execCommand(whisperPath, [
             '-m', modelPath,
             '-f', audioPath,
-            '-l', 'de',
+            '-l', 'auto',
             '-of', outputFile,
             '-otxt'
         ]);
 
-        console.log('📋 Whisper завершил работу');
-
-        // Ждём секунду (файл может создаваться с задержкой)
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Смотрим что создалось
         const filesInTemp = await fs.readdir(CONFIG.tempDir);
         console.log('📁 Файлы в temp:', filesInTemp);
 
-        // Ищем .txt файл
         const txtFile = filesInTemp.find(f => f.endsWith('.txt'));
 
         if (!txtFile) {
-            console.error('❌ Не найден .txt файл!');
-            console.error('📁 Все файлы:', filesInTemp);
             throw new Error('Whisper не создал .txt файл');
         }
-
-        console.log('📄 Найден файл:', txtFile);
 
         const outputPath = path.join(CONFIG.tempDir, txtFile);
         const transcript = await fs.readFile(outputPath, 'utf-8');
@@ -152,21 +140,52 @@ async function transcribeAudio(audioPath) {
     }
 }
 
-// Генерация конспекта через Ollama
-async function generateSummary(transcript) {
+// Генерация конспекта на выбранном языке
+async function generateSummary(transcript, summaryLanguage = 'de') {
     console.log('📝 Erstelle Mitschrift mit LLM...');
+    console.log('🌍 Язык конспекта:', summaryLanguage);
 
-    const prompt = `Du bist ein professioneller Studienassistent. Wandle diese Vorlesungstranskription in eine strukturierte Mitschrift um.
-
-Anforderungen an die Mitschrift:
+    const prompts = {
+        de: `Du bist ein professioneller Studienassistent. Wandle diese Transkription in eine strukturierte Mitschrift auf DEUTSCH um.
+Anforderungen:
 - Identifiziere die Hauptthemen und Abschnitte
 - Erstelle eine Aufzählung der wichtigsten Punkte
-- Behalte wichtige Definitionen, Begriffe und Beispiele bei
-- Strukturiere die Information logisch
+- Behalte wichtige Definitionen und Beispiele bei
 - Verwende Unterüberschriften für verschiedene Abschnitte
 - Entferne Wiederholungen und Füllwörter
+- Schreibe die gesamte Mitschrift auf DEUTSCH`,
 
-Vorlesungstranskription:
+        en: `You are a professional study assistant. Convert this transcription into structured study notes in ENGLISH.
+Requirements:
+- Identify main topics and sections
+- Create bullet points of key information
+- Keep important definitions and examples
+- Use subheadings for different sections
+- Remove repetitions and filler words
+- Write the entire notes in ENGLISH`,
+
+        uk: `Ти професійний навчальний асистент. Перетвори цю транскрипцію на структурований конспект УКРАЇНСЬКОЮ МОВОЮ.
+Вимоги:
+- Визнач основні теми та розділи
+- Створи список ключових моментів
+- Збережи важливі визначення та приклади
+- Використовуй підзаголовки для різних розділів
+- Видали повтори та слова-паразити
+- Пиши весь конспект УКРАЇНСЬКОЮ МОВОЮ`,
+
+        ru: `Ты профессиональный учебный ассистент. Преобразуй эту транскрипцию в структурированный конспект на РУССКОМ ЯЗЫКЕ.
+Требования:
+- Выдели основные темы и разделы
+- Создай список ключевых моментов
+- Сохрани важные определения и примеры
+- Используй подзаголовки для разных разделов
+- Удали повторы и слова-паразиты
+- Пиши весь конспект на РУССКОМ ЯЗЫКЕ`
+    };
+
+    const prompt = `${prompts[summaryLanguage] || prompts.de}
+
+Transkription:
 ${transcript}
 
 Mitschrift:`;
@@ -208,33 +227,30 @@ async function saveResult(summary, originalName) {
 }
 
 // Основная функция
-async function processLecture(audioPath) {
+async function processLecture(audioPath, summaryLanguage = 'de') {
     console.log('🚀 Starte Vorlesungsverarbeitung...\n');
+    console.log('📝 Язык конспекта:', summaryLanguage);
 
     try {
-        // Создаем необходимые директории
         await fs.mkdir(CONFIG.tempDir, { recursive: true });
         await fs.mkdir(CONFIG.outputDir, { recursive: true });
 
-        // Очищаем temp перед началом
         await cleanTempDir();
-
-        // Проверяем существование файла
         await fs.access(audioPath);
 
-        // 1. Конвертация аудио
+        // 1. Конвертация
         const wavPath = await convertToWav(audioPath);
 
-        // 2. Транскрибация
+        // 2. Транскрибация (автоопределение языка)
         const transcript = await transcribeAudio(wavPath);
 
-        // 3. Генерация конспекта
-        const summary = await generateSummary(transcript);
+        // 3. Конспект на выбранном языке
+        const summary = await generateSummary(transcript, summaryLanguage);
 
         // 4. Сохранение
         const outputPath = await saveResult(summary, path.basename(audioPath));
 
-        // Очистка временных файлов
+        // 5. Очистка
         console.log('🧹 Räume temporäre Dateien auf...');
         await cleanTempDir();
 

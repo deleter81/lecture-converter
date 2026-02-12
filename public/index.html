@@ -20,6 +20,19 @@
             <input type="file" id="fileInput" accept="audio/*">
         </div>
 
+        <!-- Выбор языка конспекта -->
+        <div class="language-selector">
+            <div class="language-group">
+                <label>📝 Sprache der Mitschrift:</label>
+                <select id="summaryLanguage">
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="uk">🇺🇦 Українська</option>
+                    <option value="ru">🇷🇺 Русский</option>
+                </select>
+            </div>
+        </div>
+
         <div class="processing" id="processing">
             <div class="spinner"></div>
             <p>Verarbeite Aufnahme...</p>

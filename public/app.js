@@ -94,18 +94,21 @@ async function deleteFile(filename) {
     }
 }
 
-//обработка загрузки файла
+
+// Обработка загрузки файла
 async function handleFile(file) {
     if (!file) return;
 
-    //проверяем размер
     if (file.size > 500 * 1024 * 1024) {
-        showMessage('Datei zu groß! Maximum 500mb.', error);
+        showMessage('Datei zu groß! Maximum 500MB.', 'error');
         return;
     }
 
+    const summaryLanguage = document.getElementById('summaryLanguage').value;
+
     const formData = new FormData();
     formData.append('audio', file);
+    formData.append('summaryLanguage', summaryLanguage);
 
     uploadArea.style.display = 'none';
     processing.classList.add('active');
@@ -121,10 +124,7 @@ async function handleFile(file) {
         if (response.ok) {
             showMessage('✅ Verarbeitung gestartet! Die Mitschrift erscheint in wenigen Minuten unten.', 'success');
 
-            //обновляем список результатов каждые 5 секунд
             const interval = setInterval(loadResults, 5000);
-
-            //останавливаем обновление через 2 минуты
             setTimeout(() => clearInterval(interval), 120000);
         } else {
             showMessage('❌ Fehler: ' + data.error, 'error');
@@ -133,7 +133,7 @@ async function handleFile(file) {
         showMessage('❌ Verbindungsfehler: ' + error.message, 'error');
     } finally {
         processing.classList.remove('active');
-        uploadArea.style.display = 'black';
+        uploadArea.style.display = 'block';
     }
 }
 
